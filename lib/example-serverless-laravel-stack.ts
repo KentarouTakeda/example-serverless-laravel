@@ -1,11 +1,20 @@
-import { PhpFpmFunction, packagePhpCode } from '@bref.sh/constructs';
+import { PhpFpmFunction, PhpFunction, packagePhpCode } from '@bref.sh/constructs';
 import * as cdk from 'aws-cdk-lib';
 import { FunctionUrlAuthType, LogFormat } from 'aws-cdk-lib/aws-lambda';
+import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
 
 export class ExampleServerlessLaravelStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    /**
+     * AWSリソース: SQSキュー
+     */
+    const queue = new Queue(this, 'Queue', {
+      queueName: 'example-serverless-laravel-queue',
+    });
 
     /**
      * AWS Lambdaへ設定するLaravelの環境変数
@@ -16,6 +25,7 @@ export class ExampleServerlessLaravelStack extends cdk.Stack {
       LOG_CHANNEL: 'stderr',
       LOG_STDERR_FORMATTER: 'Monolog\\Formatter\\JsonFormatter',
       QUEUE_CONNECTION: 'sqs',
+      SQS_QUEUE: queue.queueUrl,
     };
 
     /**
@@ -61,5 +71,29 @@ export class ExampleServerlessLaravelStack extends cdk.Stack {
     });
     // Webアプリケーションとして動作する用Lammda関数URLを作成
     producerFunction.addFunctionUrl({ authType: FunctionUrlAuthType.NONE });
+
+    // Webアプリケーションがキューにメッセージを送信できるように権限を付与
+    queue.grantSendMessages(producerFunction);
+
+    /**
+     * AWSリソース: キューワーカーとして動作するLambda関数
+     */
+    const consumerFunction = new PhpFunction(this, 'Consumer', {
+      functionName: 'example-serverless-laravel-queue-worker',
+      // 関数ハンドラとして Bref Laravel Bridge のキューハンドラを指定
+      handler: 'Bref\\LaravelBridge\\Queue\\QueueHandler',
+      phpVersion: '8.3',
+      logFormat: LogFormat.JSON,
+      code,
+      environment,
+    });
+    // キューワーカーのイベントソースとしてSQSを設定
+    consumerFunction.addEventSource(new SqsEventSource(queue, {
+      // 何個のキューワーカーを同時に実行できるか
+      maxConcurrency: 500
+    }));
+
+    // キューワーカーがキューからメッセージを受信できるように権限を付与
+    queue.grantConsumeMessages(consumerFunction);
   }
 }
