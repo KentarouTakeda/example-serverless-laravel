@@ -47,7 +47,6 @@ export class ExampleServerlessLaravelStack extends cdk.Stack {
             'find bootstrap/cache storage -type f -delete',
             'composer install --no-dev --prefer-dist --optimize-autoloader --no-scripts --classmap-authoritative',
             // **Bref Laravel Bridgeを使う場合ビルド時にconfig:cache を実行してはいけない**
-            './artisan package:discover',
             './artisan route:cache',
             './artisan event:cache',
             './artisan view:cache',
