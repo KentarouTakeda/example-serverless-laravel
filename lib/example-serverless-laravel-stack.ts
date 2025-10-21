@@ -23,9 +23,11 @@ export class ExampleServerlessLaravelStack extends cdk.Stack {
       APP_DEBUG: 'true',
       APP_KEY: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
       BREF_LARAVEL_OMIT_INITLOG: '0',
+      CACHE_STORE: 'array',
       LOG_CHANNEL: 'stderr',
       LOG_STDERR_FORMATTER: 'Monolog\\Formatter\\JsonFormatter',
       QUEUE_CONNECTION: 'sqs',
+      SESSION_DRIVER: 'array',
       SQS_QUEUE: queue.queueUrl,
     };
 
