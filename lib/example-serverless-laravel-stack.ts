@@ -1,6 +1,6 @@
 import { PhpFpmFunction, PhpFunction, packagePhpCode } from '@bref.sh/constructs';
 import * as cdk from 'aws-cdk-lib';
-import { FunctionUrlAuthType, LogFormat } from 'aws-cdk-lib/aws-lambda';
+import { FunctionUrlAuthType, LoggingFormat } from 'aws-cdk-lib/aws-lambda';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
@@ -67,7 +67,7 @@ export class ExampleServerlessLaravelStack extends cdk.Stack {
       // 関数ハンドラとしてLaravelのエントリーポイントを指定
       handler: 'public/index.php',
       phpVersion: '8.3',
-      logFormat: LogFormat.JSON,
+      loggingFormat: LoggingFormat.JSON,
       code,
       environment,
     });
@@ -85,7 +85,7 @@ export class ExampleServerlessLaravelStack extends cdk.Stack {
       // 関数ハンドラとして Bref Laravel Bridge のキューハンドラを指定
       handler: 'Bref\\LaravelBridge\\Queue\\QueueHandler',
       phpVersion: '8.3',
-      logFormat: LogFormat.JSON,
+      loggingFormat: LoggingFormat.JSON,
       code,
       environment,
     });
